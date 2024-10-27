@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Maasai Translator</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js"></script>
+		<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+		<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+	font-family: 'Inter', sans-serif;
+}
+
+		.glass {
+			background: rgba(255, 255, 255, 0.1);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+		}
+
+		.messages-container::-webkit-scrollbar {
+			width: 6px;
+		}
+
+		.messages-container::-webkit-scrollbar-track {
+			background: rgba(255, 255, 255, 0.1);
+		}
+
+		.messages-container::-webkit-scrollbar-thumb {
+			background: rgba(255, 255, 255, 0.3);
+			border-radius: 3px;
+		}
+
+		.typing-animation::after {
+			content: '•••';
+			animation: typing 1s infinite;
+		}
+
+		@keyframes typing {
+			0%, 100% { opacity: 0; }
+			50% { opacity: 1; }
+		}
+
+		.slide-in {
+			animation: slideIn 0.3s ease-out forwards;
+		}
+
+		@keyframes slideIn {
+			from { transform: translateY(20px); opacity: 0; }
+			to { transform: translateY(0); opacity: 1; }
+		}
+
+		.pulse {
+			animation: pulse 2s infinite;
+		}
+
+		@keyframes pulse {
+			0% { transform: scale(1); }
+			50% { transform: scale(1.05); }
+			100% { transform: scale(1); }
+		}
+		.to-pink-800 {
+			--tw-gradient-to:#170333;
+		}
+		.from-indigo-900 {
+			--tw-gradient-from:#000;
+			--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to, rgba(49, 46, 129, 0))
+		}
+
+		</style>
+	</head>
+	<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 min-h-screen text-white">
+		<div class="relative min-h-screen flex">
+			<!-- Sidebar -->
+			<div id="sidebar" class="fixed left-0 top-0 h-full w-72 glass transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-20">
+				<div class="p-6 space-y-6">
+					<div class="flex items-center justify-between">
+						<h2 class="text-xl font-semibold">Menu</h2>
+						<button id="closeSidebar" class="md:hidden">
+							<i class="fas fa-times"></i>
+						</button>
+					</div>
+
+					<!-- Language Toggle -->
+					<div class="glass rounded-lg p-4">
+						<h3 class="text-sm font-semibold mb-3">Translation Direction</h3>
+						<div class="flex gap-2">
+							<button class="flex-1 py-2 px-3 rounded bg-white/10 hover:bg-white/20 transition-colors active" data-direction="en-ma">
+								EN → MA
+							</button>
+							<button class="flex-1 py-2 px-3 rounded bg-white/10 hover:bg-white/20 transition-colors" data-direction="ma-en">
+								MA → EN
+							</button>
+						</div>
+					</div>
+
+					<!-- Quick Phrases -->
+					<div class="glass rounded-lg p-4">
+						<h3 class="text-sm font-semibold mb-3">Quick Phrases</h3>
+						<div class="space-y-2">
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+								Hello / Supaa 
+							</button>
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+								Thank you / Ashe oleng
+							</button>
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+								Enkerai -child							</button>
+
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+								Entito- girl
+							</button>
+
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+								Ero- boy
+							</button>
+
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+								School- esukul
+							</button>
+
+							<button class="w-full text-left p-2 rounded hover:bg-white/10 transition-colors quick-phrase">
+							Olchore- friend</button>
+						</div>
+					</div>
+
+					<!-- Recent Translations -->
+					<div class="glass rounded-lg p-4">
+						<h3 class="text-sm font-semibold mb-3">Recent Translations</h3>
+						<div id="recentTranslations" class="space-y-2">
+							<!-- Dynamically filled -->
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Main Content -->
+			<div class="flex-1 md:ml-72">
+				<!-- Header -->
+				<header class="glass h-16 fixed top-0 right-0 left-0 md:left-72 z-10">
+					<div class="h-full px-4 flex items-center justify-between">
+						<div class="flex items-center gap-4">
+							<button id="menuBtn" class="md:hidden">
+								<i class="fas fa-bars"></i>
+							</button>
+							<h1 class="text-xl font-semibold">Translingual</h1>
+						</div>
+						<div class="flex items-center gap-4">
+							<button id="clearChat" class="hover:bg-white/10 p-2 rounded-full transition-colors">
+								<i class="fas fa-trash-alt"></i>
+							</button>
+							<button id="toggleTheme" class="hover:bg-white/10 p-2 rounded-full transition-colors">
+								<i class="fas fa-moon"></i>
+							</button>
+						</div>
+					</div>
+				</header>
+
+				<!-- Messages Area -->
+				<main class="pt-16 pb-24 h-screen">
+					<div id="messages" class="messages-container h-full overflow-y-auto p-4 space-y-4">
+						<!-- Welcome Message -->
+						<div class="flex items-start gap-2 slide-in">
+							<div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+								<i class="fas fa-robot"></i>
+							</div>
+							<div class="glass rounded-lg p-4 max-w-[80%]">
+								<div id="welcomeText"></div>
+							</div>
+						</div>
+					</div>
+				</main>
+
+				<!-- Input Area -->
+				<footer class="fixed bottom-0 right-0 left-0 md:left-72">
+					<div class="glass p-4">
+						<form id="translateForm" class="flex items-end gap-2">
+							<div class="flex-1 glass rounded-lg p-2">
+								<div class="flex items-center gap-2 mb-2">
+									<button type="button" id="voiceInput" class="hover:bg-white/10 p-2 rounded-full transition-colors">
+										<i class="fas fa-microphone"></i>
+									</button>
+									<button type="button" id="uploadImage" class="hover:bg-white/10 p-2 rounded-full transition-colors">
+										<i class="fas fa-camera"></i>
+									</button>
+								</div>
+								<textarea
+										id="messageInput"
+										rows="1"
+										class="w-full bg-transparent resize-none focus:outline-none"
+										placeholder="Type your message..."
+										></textarea>
+							</div>
+							<button type="submit" class="bg-blue-500 hover:bg-blue-600 p-4 rounded-lg transition-colors">
+								<i class="fas fa-paper-plane"></i>
+							</button>
+						</form>
+					</div>
+				</footer>
+			</div>
+		</div>
+
+		<script>
+			// Initialize Typed.js for welcome message
+			new Typed('#welcomeText', {
+				strings: ['Hello! I can help translate between English and Maasai.', 'Jambo! Ready to help you communicate in Maasai.'],
+				typeSpeed: 30,
+				backSpeed: 20,
+				backDelay: 2000,
+				loop: true
+			});
+
+			// DOM Elements
+			const menuBtn = document.getElementById('menuBtn');
+			const closeSidebar = document.getElementById('closeSidebar');
+			const sidebar = document.getElementById('sidebar');
+			const messages = document.getElementById('messages');
+			const translateForm = document.getElementById('translateForm');
+			const messageInput = document.getElementById('messageInput');
+			const clearChat = document.getElementById('clearChat');
+			const toggleTheme = document.getElementById('toggleTheme');
+
+			// Toggle Sidebar
+			menuBtn.addEventListener('click', () => {
+				sidebar.classList.remove('-translate-x-full');
+			});
+
+			closeSidebar.addEventListener('click', () => {
+				sidebar.classList.add('-translate-x-full');
+			});
+
+			// Auto-resize textarea
+			messageInput.addEventListener('input', () => {
+				messageInput.style.height = 'auto';
+				messageInput.style.height = messageInput.scrollHeight + 'px';
+			});
+
+			// Handle message submission
+			translateForm.addEventListener('submit', (e) => {
+				e.preventDefault();
+				const message = messageInput.value.trim();
+				if (!message) return;
+
+				// Add user message
+				addMessage(message, 'user');
+				messageInput.value = '';
+				messageInput.style.height = 'auto';
+
+				// Simulate translation
+				setTimeout(() => {
+					showTypingIndicator();
+					setTimeout(() => {
+						removeTypingIndicator();
+						addMessage(`Translated: ${message}`, 'bot');
+					}, 1500);
+				}, 500);
+			});
+
+			function addMessage(text, sender) {
+				const messageDiv = document.createElement('div');
+				messageDiv.className = `flex items-start gap-2 slide-in ${sender === 'user' ? 'justify-end' : ''}`;
+
+				const content = `
+				${sender === 'bot' ? `
+					<div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+						<i class="fas fa-robot"></i>
+					</div>
+				` : ''}
+				<div class="glass rounded-lg p-4 max-w-[80%]">
+					${text}
+				</div>
+				${sender === 'user' ? `
+					<div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
+						<i class="fas fa-user"></i>
+					</div>
+				` : ''}
+			`;
+
+				messageDiv.innerHTML = content;
+				messages.appendChild(messageDiv);
+				messages.scrollTop = messages.scrollHeight;
+			}
+
+			function showTypingIndicator() {
+				const indicator = document.createElement('div');
+				indicator.className = 'flex items-start gap-2 slide-in typing-indicator';
+				indicator.innerHTML = `
+				<div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+					<i class="fas fa-robot"></i>
+				</div>
+					<div class="glass rounded-lg p-4 max-w-[80%]">
+					<span class="typing-animation"></span>
+					</div>
+				`;
+				messages.appendChild(indicator);
+				messages.scrollTop = messages.scrollHeight;
+			}
+
+			function removeTypingIndicator() {
+				const indicator = document.querySelector('.typing-indicator');
+				if (indicator) indicator.remove();
+			}
+
+			// Clear chat
+			clearChat.addEventListener('click', () => {
+				if (confirm('Are you sure you want to clear the chat?')) {
+					messages.innerHTML = '';
+					// Re-add welcome message
+					new Typed('#welcomeText', {
+						strings: ['Hello! I can help translate between English and Maasai.', 'Jambo! Ready to help you communicate in Maasai.'],
+						typeSpeed: 30,
+						backSpeed: 20,
+						backDelay: 2000,
+						loop: true
+					});
+				}
+			});
+
+			// Quick phrases
+			document.querySelectorAll('.quick-phrase').forEach(button => {
+				button.addEventListener('click', () => {
+					messageInput.value = button.textContent.trim();
+					messageInput.focus();
+				});
+			});
+		</script>
+	</body>
+</html>
